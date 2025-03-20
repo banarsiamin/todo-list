@@ -1,9 +1,27 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 
+// Custom Modal Component
+const Modal = ({ isOpen, onClose, onConfirm, todoItem }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="akbmodal-overlay">
+      <div className="akbmodal">
+        <h3>Confirm Delete</h3>
+        <p>Are you sure you want to delete "{todoItem}"?</p>
+        <div className="akbmodal-actions">
+          <button onClick={onClose} className="button_type cancel">Cancel</button>
+          <button onClick={onConfirm} className="button_type delete">Delete</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 function App() {
-  // Initialize todos with unique IDs
-  // Load todos from localStorage or initialize with default todos
   const [todos, setTodos] = useState(() => {
     const savedTodos = localStorage.getItem('todos');
     return savedTodos ? JSON.parse(savedTodos) : [
@@ -17,12 +35,14 @@ function App() {
   const [error, setError] = useState("");
   const [editing, setEditing] = useState(false); // Track if we're editing
   const [currentTodo, setCurrentTodo] = useState({ id: null, item: "" }); // Current todo being edited
+  const [isModalOpen, setIsModalOpen] = useState(false); // Track modal state
+  const [todoToDelete, setTodoToDelete] = useState(null); // Track todo to delete
 
-    // Save todos to localStorage whenever they change
-    useEffect(() => {
-      localStorage.setItem('todos', JSON.stringify(todos));
-    }, [todos]);
-  
+  // Save todos to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('todos', JSON.stringify(todos));
+  }, [todos]);
+
   const handleSubmit = (event) => {
     event.preventDefault();
 
@@ -34,27 +54,34 @@ function App() {
 
     // Clear the error message
     setError("");
-    if(editing){
-        // Update the existing todo
-        setTodos(
-          todos.map((todo) =>
-            todo.id === currentTodo.id ? { ...todo, item: item.trim() } : todo
-          )
-        );
-        setEditing(false); // Exit editing mode
-    }else{
+
+    if (editing) {
+      // Update the existing todo
+      setTodos(
+        todos.map((todo) =>
+          todo.id === currentTodo.id ? { ...todo, item: item.trim() } : todo
+        )
+      );
+      setEditing(false); // Exit editing mode
+      toast.success("Todo updated successfully!"); // Toast for edit
+    } else {
       // Add new todo with a unique ID
       const todo_v = {
         id: Date.now(),
         item: item.trim() // Trim the input
-      }; 
+      };
       setTodos([...todos, todo_v]);
+      toast.success("Todo added successfully!"); // Toast for add
     }
+
     setItem(''); // Clear the input field
   };
 
   const handleDelete = (id) => {
-    setTodos(todos.filter((todo) => id !== todo.id)); // Fixed condition
+    const deletedTodo = todos.find((todo) => todo.id === id);
+    setTodos(todos.filter((todo) => id !== todo.id)); // Delete the todo
+    toast.error(`Deleted: ${deletedTodo.item}`); // Toast for delete
+    setIsModalOpen(false); // Close the modal
   };
 
   const handleEdit = (todo) => {
@@ -63,6 +90,15 @@ function App() {
     setItem(todo.item); // Populate the input field with the todo's item
   };
 
+  const openDeleteModal = (id) => {
+    const todo = todos.find((todo) => todo.id === id);
+    setTodoToDelete(todo); // Set the todo to delete
+    setIsModalOpen(true); // Open the modal
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false); // Close the modal
+  };
 
   return (
     <>
@@ -73,7 +109,7 @@ function App() {
 
           <div>
             <form onSubmit={handleSubmit}>
-            <input
+              <input
                 value={item}
                 onInput={(e) => setItem(e.target.value)}
                 type='text'
@@ -92,12 +128,35 @@ function App() {
           <ul>
             {todos.map((todo) => (
               <li key={todo.id}>
-                {todo.item} ({todo.id})| <button onClick={() => handleEdit(todo)} className='button_type edit'>Edit</button> <button onClick={() => handleDelete(todo.id)} className='button_type delete'>X</button>
+                {todo.item} ({todo.id}) 
+                <button onClick={() => handleEdit(todo)} className='button_type edit'>Edit</button>
+                <button onClick={() => openDeleteModal(todo.id)} className='button_type delete'>X</button>
               </li>
             ))}
           </ul>
         </div>
       </div>
+
+      {/* Custom Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onConfirm={() => handleDelete(todoToDelete.id)}
+        todoItem={todoToDelete ? todoToDelete.item : ''}
+      />
+
+      {/* Toast Container */}
+      <ToastContainer
+        position="bottom-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </>
   );
 }

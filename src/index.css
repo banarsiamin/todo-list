@@ -54,3 +54,46 @@ ul li{
   margin: 2px 0;
   padding: 2px 2px;
 }
+
+
+/* akbModal Styles */
+.akbmodal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.akbmodal {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+}
+
+.akbmodal h3 {
+  margin-top: 0;
+}
+
+.akbmodal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.button_type.cancel {
+  background-color: #6c757d;
+}
+
+.button_type.delete {
+  background-color: #dc3545;
+}
